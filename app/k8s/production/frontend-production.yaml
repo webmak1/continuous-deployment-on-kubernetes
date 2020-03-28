@@ -1,30 +1,65 @@
+apiVersion: apps/v1
 kind: Deployment
-apiVersion: extensions/v1beta1
 metadata:
+  creationTimestamp: null
+  labels:
+    app: gceme
+    env: production
+    role: frontend
   name: gceme-frontend-production
 spec:
-  replicas:
+  progressDeadlineSeconds: 2147483647
+  replicas: 1
+  revisionHistoryLimit: 2147483647
+  selector:
+    matchLabels:
+      app: gceme
+      env: production
+      role: frontend
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
   template:
     metadata:
-      name: frontend
+      creationTimestamp: null
       labels:
         app: gceme
-        role: frontend
         env: production
+        role: frontend
+      name: frontend
     spec:
       containers:
-      - name: frontend
+      - command:
+        - sh
+        - -c
+        - app -frontend=true -backend-service=http://gceme-backend:8080 -port=80
         image: gcr.io/cloud-solutions-images/gceme:1.0.0
-        resources:
-          limits:
-            memory: "500Mi"
-            cpu: "100m"
         imagePullPolicy: Always
+        name: frontend
+        ports:
+        - containerPort: 80
+          name: frontend
+          protocol: TCP
         readinessProbe:
+          failureThreshold: 3
           httpGet:
             path: /healthz
             port: 80
-        command: ["sh", "-c", "app -frontend=true -backend-service=http://gceme-backend:8080 -port=80"]
-        ports:
-        - name: frontend
-          containerPort: 80
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 100m
+            memory: 500Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status: {}
