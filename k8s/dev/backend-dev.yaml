@@ -35,7 +35,7 @@ spec:
         - sh
         - -c
         - app -port=8080
-        image: gcr.io/cloud-solutions-images/gceme:1.0.0
+        image: webmakaka/continuous-deployment-on-kubernetes:latest
         imagePullPolicy: Always
         name: backend
         ports:
